@@ -343,6 +343,13 @@ def go():
 
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
+        from urllib.parse import urlparse, parse_qs
+    parsed = urlparse(url)
+    if parsed.hostname and "google" in parsed.hostname:
+        params = parse_qs(parsed.query)
+        if "q" in params:
+            search_query = params["q"][0]
+            url = f"https://www.google.com/search?q={quote(search_query)}"
 
     try:
         resp = requests.get(url, headers=HEADERS, timeout=20, allow_redirects=True)
