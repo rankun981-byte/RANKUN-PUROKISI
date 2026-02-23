@@ -1,5 +1,5 @@
 """
-らんくんプロキシ - URLを貼るとそのサイトをプロキシ経由で表示
+社会クイズ - URLを貼るとそのサイトをプロキシ経由で表示
 使い方: python proxy_app.py → http://localhost:5000 を開く
 """
 
@@ -215,7 +215,7 @@ HOME_HTML = """<!DOCTYPE html>
   <div class="bubble" style="width:80px;height:80px;background:var(--accent);right:25%;top:20%;animation-duration:11s;animation-delay:-6s;"></div>
 
   <div class="container">
-    <div class="mascot">🐾</div>
+    <div class="mascot">😅</div>
     <h1>らんくんプロキシ</h1>
     <p class="subtitle">みたい<span>リンクを貼ってね</span>！プロキシ経由で開くよ🎉</p>
 
