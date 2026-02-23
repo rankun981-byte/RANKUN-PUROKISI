@@ -1,7 +1,7 @@
 from flask import Flask, request, Response, render_template_string
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, quote, unquote
+from urllib.parse import urljoin, quote
 import re
 
 app = Flask(__name__)
@@ -56,9 +56,9 @@ HOME_HTML = """<!DOCTYPE html>
     <div class="input-card">
       <div class="input-label">🔗 URL または 検索ワード</div>
       {% if error %}<div class="error-msg">⚠️ {{ error }}</div>{% endif %}
-      <form method="GET" action="/go">
+      <form method="GET" action="/search">
         <div class="input-row">
-          <input type="text" name="url" placeholder="https://example.com または 検索ワード" value="{{ url or '' }}" autofocus autocomplete="off" spellcheck="false">
+          <input type="text" name="q" placeholder="URLまたは検索ワードを入力" value="{{ q or '' }}" autofocus autocomplete="off" spellcheck="false">
           <button type="submit">開く →</button>
         </div>
       </form>
@@ -168,19 +168,35 @@ def index():
     return render_template_string(HOME_HTML)
 
 
+@app.route("/search")
+def search():
+    q = request.args.get("q", "").strip()
+    if not q:
+        return render_template_string(HOME_HTML, error="URLまたは検索ワードを入力してね！")
+
+    # URLかどうか判定
+    if q.startswith(("http://", "https://")):
+        url = q
+    elif "." in q and " " not in q:
+        url = "https://" + q
+    else:
+        # 検索ワードはDuckDuckGoで検索
+        url = "https://duckduckgo.com/?q=" + quote(q, safe="")
+
+    return fetch_and_return(url)
+
+
 @app.route("/go")
 def go():
     url = request.args.get("url", "").strip()
     if not url:
         return render_template_string(HOME_HTML, error="URLを貼り付けてね！")
-
-    # URLじゃなくて検索ワードの場合はDuckDuckGoで検索
     if not url.startswith(("http://", "https://")):
-        if "." in url and " " not in url:
-            url = "https://" + url
-        else:
-            url = "https://duckduckgo.com/?q=" + quote(url, safe="")
+        url = "https://" + url
+    return fetch_and_return(url)
 
+
+def fetch_and_return(url):
     try:
         resp = requests.get(url, headers=HEADERS, timeout=20, allow_redirects=True)
         ct = resp.headers.get("Content-Type", "")
@@ -191,11 +207,11 @@ def go():
         else:
             return Response(resp.content, content_type=ct)
     except requests.exceptions.ConnectionError:
-        return render_template_string(HOME_HTML, url=url, error="接続できませんでした。")
+        return render_template_string(HOME_HTML, error="接続できませんでした。")
     except requests.exceptions.Timeout:
-        return render_template_string(HOME_HTML, url=url, error="タイムアウトしました。")
+        return render_template_string(HOME_HTML, error="タイムアウトしました。")
     except Exception as e:
-        return render_template_string(HOME_HTML, url=url, error=f"エラー: {str(e)}")
+        return render_template_string(HOME_HTML, error=f"エラー: {str(e)}")
 
 
 @app.route("/res")
