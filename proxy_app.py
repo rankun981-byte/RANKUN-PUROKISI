@@ -1,3 +1,4 @@
+cat > /mnt/user-data/outputs/proxy_app.py << 'ENDOFFILE'
 from flask import Flask, request, Response, render_template_string
 import requests
 from bs4 import BeautifulSoup
@@ -11,7 +12,6 @@ HEADERS = {
                   "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
     "Accept-Language": "ja,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate",
 }
 
 HOME_HTML = """<!DOCTYPE html>
@@ -84,18 +84,13 @@ HOME_HTML = """<!DOCTYPE html>
       background-clip: text;
       letter-spacing: -1px;
     }
-    .subtitle {
-      color: var(--muted);
-      font-size: 1rem;
-      margin-bottom: 36px;
-      font-weight: 400;
-    }
+    .subtitle { color: var(--muted); font-size: 1rem; margin-bottom: 36px; }
     .subtitle span { color: var(--accent2); font-weight: 700; }
     .input-card {
       background: var(--surface);
       border-radius: 24px;
       padding: 28px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
       border: 1px solid rgba(255,255,255,0.06);
     }
     .input-label {
@@ -104,7 +99,6 @@ HOME_HTML = """<!DOCTYPE html>
       color: var(--muted);
       margin-bottom: 10px;
       font-weight: 700;
-      letter-spacing: 0.05em;
       text-transform: uppercase;
     }
     .input-row { display: flex; gap: 10px; margin-bottom: 16px; }
@@ -115,32 +109,24 @@ HOME_HTML = """<!DOCTYPE html>
       border-radius: 14px;
       padding: 14px 18px;
       color: var(--text);
-      font-family: 'M PLUS Rounded 1c', sans-serif;
       font-size: 0.95rem;
       outline: none;
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.2s;
     }
+    input[type=text]:focus { border-color: var(--accent); }
     input[type=text]::placeholder { color: rgba(167,169,190,0.5); }
-    input[type=text]:focus {
-      border-color: var(--accent);
-      background: rgba(255,107,107,0.06);
-    }
     button {
       background: linear-gradient(135deg, var(--accent), #ff8e53);
       border: none;
       border-radius: 14px;
       padding: 14px 22px;
       color: white;
-      font-family: 'M PLUS Rounded 1c', sans-serif;
       font-size: 1rem;
       font-weight: 800;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
       box-shadow: 0 4px 16px rgba(255,107,107,0.4);
       white-space: nowrap;
     }
-    button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,107,0.5); }
-    button:active { transform: translateY(0); }
     .error-msg {
       background: rgba(255,107,107,0.12);
       border: 1px solid rgba(255,107,107,0.3);
@@ -166,30 +152,22 @@ HOME_HTML = """<!DOCTYPE html>
       font-size: 0.78rem;
       color: var(--muted);
       cursor: pointer;
-      transition: background 0.2s;
     }
     .tip-badge:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-    .footer {
-      margin-top: 32px;
-      color: rgba(167,169,190,0.4);
-      font-size: 0.75rem;
-    }
+    .footer { margin-top: 32px; color: rgba(167,169,190,0.4); font-size: 0.75rem; }
   </style>
 </head>
 <body>
   <div class="bubble" style="width:300px;height:300px;background:var(--accent);left:-100px;top:10%;animation-duration:18s;animation-delay:-5s;"></div>
   <div class="bubble" style="width:200px;height:200px;background:var(--accent2);right:-60px;top:40%;animation-duration:14s;animation-delay:-8s;"></div>
   <div class="bubble" style="width:150px;height:150px;background:var(--accent3);left:20%;bottom:0;animation-duration:20s;animation-delay:-2s;"></div>
-  <div class="bubble" style="width:80px;height:80px;background:var(--accent);right:25%;top:20%;animation-duration:11s;animation-delay:-6s;"></div>
   <div class="container">
     <div class="mascot">🐾</div>
     <h1>社会クイズ</h1>
     <p class="subtitle">みたい<span>リンクを貼ってね</span>！プロキシ経由で開くよ🎉</p>
     <div class="input-card">
       <div class="input-label">🔗 URL を貼り付け</div>
-      {% if error %}
-      <div class="error-msg">⚠️ {{ error }}</div>
-      {% endif %}
+      {% if error %}<div class="error-msg">⚠️ {{ error }}</div>{% endif %}
       <form method="GET" action="/go">
         <div class="input-row">
           <input type="text" name="url" placeholder="https://example.com" value="{{ url or '' }}" autofocus autocomplete="off" spellcheck="false">
@@ -197,7 +175,7 @@ HOME_HTML = """<!DOCTYPE html>
         </div>
       </form>
       <div class="tips">
-        <span class="tip-badge" onclick="go('https://www.google.com')">Google</span>
+        <span class="tip-badge" onclick="go('https://duckduckgo.com')">🦆 DuckDuckGo</span>
         <span class="tip-badge" onclick="go('https://www.wikipedia.org')">Wikipedia</span>
         <span class="tip-badge" onclick="go('https://news.yahoo.co.jp')">Yahoo!ニュース</span>
         <span class="tip-badge" onclick="go('https://www.nicovideo.jp')">ニコニコ</span>
@@ -221,8 +199,8 @@ PROXY_BAR = """<div id="__ran_bar__" style="
   backdrop-filter:blur(10px);
   color:#fffffe;padding:8px 14px;
   display:flex;align-items:center;gap:10px;
-  font-family:sans-serif;
-  font-size:13px;border-bottom:1px solid rgba(255,255,255,0.08);
+  font-family:sans-serif;font-size:13px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
   box-shadow:0 2px 16px rgba(0,0,0,0.5);">
   <span style="font-weight:800;color:#ff6b6b;white-space:nowrap;font-size:14px;">🐾 らんくん</span>
   <input id="__ran_url__" type="text" value="{CURRENT_URL}"
@@ -232,11 +210,39 @@ PROXY_BAR = """<div id="__ran_bar__" style="
     font-size:12px;outline:none;font-family:monospace;">
   <button onclick="location.href='/go?url='+encodeURIComponent(document.getElementById('__ran_url__').value)"
     style="padding:5px 14px;background:linear-gradient(135deg,#ff6b6b,#ff8e53);
-    color:white;border:none;border-radius:8px;cursor:pointer;font-weight:800;
-    font-size:12px;white-space:nowrap;">移動</button>
+    color:white;border:none;border-radius:8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap;">移動</button>
   <a href="/" style="color:#a7a9be;text-decoration:none;white-space:nowrap;font-size:12px;">🏠ホーム</a>
 </div>
 <div style="height:46px;"></div>"""
+
+
+def fix_encoding(resp):
+    content = resp.content
+    content_type = resp.headers.get("Content-Type", "")
+    charset = None
+
+    if "charset=" in content_type:
+        charset = content_type.split("charset=")[-1].strip().split(";")[0].strip()
+
+    if not charset:
+        try:
+            snippet = content[:4096].decode("ascii", errors="ignore")
+            match = re.search(r'charset=["\']?([a-zA-Z0-9_\-]+)', snippet, re.IGNORECASE)
+            if match:
+                charset = match.group(1)
+        except Exception:
+            pass
+
+    if charset:
+        try:
+            return content.decode(charset, errors="replace")
+        except (LookupError, UnicodeDecodeError):
+            pass
+
+    try:
+        return content.decode(resp.apparent_encoding or "utf-8", errors="replace")
+    except Exception:
+        return content.decode("utf-8", errors="replace")
 
 
 def rewrite_html(html, base_url):
@@ -244,6 +250,11 @@ def rewrite_html(html, base_url):
         soup = BeautifulSoup(html, "html.parser")
     except Exception:
         return html
+
+    for meta in soup.find_all("meta", charset=True):
+        meta["charset"] = "utf-8"
+    for meta in soup.find_all("meta", attrs={"http-equiv": lambda x: x and x.lower() == "content-type"}):
+        meta["content"] = "text/html; charset=utf-8"
 
     for tag in soup.find_all("a", href=True):
         h = tag["href"].strip()
@@ -310,7 +321,8 @@ def go():
         content_type = resp.headers.get("Content-Type", "")
 
         if "text/html" in content_type:
-            rewritten = rewrite_html(resp.text, resp.url)
+            html = fix_encoding(resp)
+            rewritten = rewrite_html(html, resp.url)
             return Response(rewritten, content_type="text/html; charset=utf-8")
         else:
             return Response(resp.content, content_type=content_type)
@@ -334,7 +346,7 @@ def resource():
 
         if "text/css" in content_type:
             base = url
-            css = resp.text
+            css = fix_encoding(resp)
             def replace_url(m):
                 inner = m.group(1).strip("'\" ")
                 if inner.startswith("data:"):
@@ -342,7 +354,7 @@ def resource():
                 abs_u = urljoin(base, inner)
                 return f"url('/res?url={quote(abs_u, safe='')}')"
             css = re.sub(r'url\(([^)]+)\)', replace_url, css)
-            return Response(css, content_type=content_type)
+            return Response(css, content_type="text/css; charset=utf-8")
 
         return Response(resp.content, content_type=content_type)
     except Exception:
@@ -351,3 +363,4 @@ def resource():
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=5000)
+ENDOFFILE
