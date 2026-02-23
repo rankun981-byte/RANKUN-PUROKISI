@@ -244,6 +244,8 @@ HOME_HTML = """<!DOCTYPE html>
 
   <script>
     function go(url) {
+  window.location.href = '/go?url=' + encodeURIComponent(url);
+}
   location.href = '/go?url=' + encodeURIComponent(url);
 }
       document.querySelector('input[name=url]').value = url;
