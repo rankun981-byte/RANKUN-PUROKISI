@@ -1,8 +1,3 @@
-"""
-社会クイズ - URLを貼るとそのサイトをプロキシ経由で表示
-使い方: python proxy_app.py → http://localhost:5000 を開く
-"""
-
 from flask import Flask, request, Response, render_template_string
 import requests
 from bs4 import BeautifulSoup
@@ -24,7 +19,7 @@ HOME_HTML = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>らんくんプロキシ</title>
+  <title>社会クイズ</title>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&family=M+PLUS+Rounded+1c:wght@400;800&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -37,7 +32,6 @@ HOME_HTML = """<!DOCTYPE html>
       --muted: #a7a9be;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       background: var(--bg);
       color: var(--text);
@@ -50,7 +44,6 @@ HOME_HTML = """<!DOCTYPE html>
       overflow: hidden;
       position: relative;
     }
-
     .bubble {
       position: fixed;
       border-radius: 50%;
@@ -62,7 +55,6 @@ HOME_HTML = """<!DOCTYPE html>
       0% { transform: translateY(110vh) scale(0.8); }
       100% { transform: translateY(-20vh) scale(1.2); }
     }
-
     .container {
       position: relative;
       z-index: 10;
@@ -71,7 +63,6 @@ HOME_HTML = """<!DOCTYPE html>
       width: 100%;
       max-width: 640px;
     }
-
     .mascot {
       font-size: 80px;
       animation: bounce 2s ease-in-out infinite;
@@ -82,7 +73,6 @@ HOME_HTML = """<!DOCTYPE html>
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-12px); }
     }
-
     h1 {
       font-family: 'Zen Maru Gothic', sans-serif;
       font-weight: 900;
@@ -94,18 +84,13 @@ HOME_HTML = """<!DOCTYPE html>
       background-clip: text;
       letter-spacing: -1px;
     }
-
     .subtitle {
       color: var(--muted);
       font-size: 1rem;
       margin-bottom: 36px;
       font-weight: 400;
     }
-    .subtitle span {
-      color: var(--accent2);
-      font-weight: 700;
-    }
-
+    .subtitle span { color: var(--accent2); font-weight: 700; }
     .input-card {
       background: var(--surface);
       border-radius: 24px;
@@ -113,7 +98,6 @@ HOME_HTML = """<!DOCTYPE html>
       box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.06);
     }
-
     .input-label {
       text-align: left;
       font-size: 0.85rem;
@@ -123,13 +107,7 @@ HOME_HTML = """<!DOCTYPE html>
       letter-spacing: 0.05em;
       text-transform: uppercase;
     }
-
-    .input-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
+    .input-row { display: flex; gap: 10px; margin-bottom: 16px; }
     input[type=text] {
       flex: 1;
       background: rgba(255,255,255,0.06);
@@ -147,7 +125,6 @@ HOME_HTML = """<!DOCTYPE html>
       border-color: var(--accent);
       background: rgba(255,107,107,0.06);
     }
-
     button {
       background: linear-gradient(135deg, var(--accent), #ff8e53);
       border: none;
@@ -162,12 +139,8 @@ HOME_HTML = """<!DOCTYPE html>
       box-shadow: 0 4px 16px rgba(255,107,107,0.4);
       white-space: nowrap;
     }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255,107,107,0.5);
-    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,107,0.5); }
     button:active { transform: translateY(0); }
-
     .error-msg {
       background: rgba(255,107,107,0.12);
       border: 1px solid rgba(255,107,107,0.3);
@@ -178,7 +151,6 @@ HOME_HTML = """<!DOCTYPE html>
       margin-bottom: 12px;
       text-align: left;
     }
-
     .tips {
       display: flex;
       gap: 10px;
@@ -196,11 +168,7 @@ HOME_HTML = """<!DOCTYPE html>
       cursor: pointer;
       transition: background 0.2s;
     }
-    .tip-badge:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--text);
-    }
-
+    .tip-badge:hover { background: rgba(255,255,255,0.1); color: var(--text); }
     .footer {
       margin-top: 32px;
       color: rgba(167,169,190,0.4);
@@ -213,12 +181,10 @@ HOME_HTML = """<!DOCTYPE html>
   <div class="bubble" style="width:200px;height:200px;background:var(--accent2);right:-60px;top:40%;animation-duration:14s;animation-delay:-8s;"></div>
   <div class="bubble" style="width:150px;height:150px;background:var(--accent3);left:20%;bottom:0;animation-duration:20s;animation-delay:-2s;"></div>
   <div class="bubble" style="width:80px;height:80px;background:var(--accent);right:25%;top:20%;animation-duration:11s;animation-delay:-6s;"></div>
-
   <div class="container">
-    <div class="mascot">😅</div>
-    <h1>らんくんプロキシ</h1>
+    <div class="mascot">🐾</div>
+    <h1>社会クイズ</h1>
     <p class="subtitle">みたい<span>リンクを貼ってね</span>！プロキシ経由で開くよ🎉</p>
-
     <div class="input-card">
       <div class="input-label">🔗 URL を貼り付け</div>
       {% if error %}
@@ -238,24 +204,11 @@ HOME_HTML = """<!DOCTYPE html>
         <span class="tip-badge" onclick="go('https://script.google.com/macros/s/AKfycbxm0tNsWUp7nhFboWBgldo4diYLQIHKCB1YaCa2OI6gwe50HxuEbRb5wHh53rjaaWwArw/exec')">🎬 しあtube</span>
       </div>
     </div>
-
-    <p class="footer">らんくんプロキシ · サーバー経由でウェブを閲覧できるよ</p>
+    <p class="footer">社会クイズ · サーバー経由でウェブを閲覧できるよ</p>
   </div>
-
   <script>
-    from urllib.parse import urlparse, parse_qs
-    parsed = urlparse(url)
-    if parsed.hostname and "google" in parsed.hostname:
-        params = parse_qs(parsed.query)
-        if "q" in params:
-            search_query = params["q"][0]
-            url = f"https://www.google.com/search?q={quote(search_query)}"
-  window.location.href = '/go?url=' + encodeURIComponent(url);
-}
-  location.href = '/go?url=' + encodeURIComponent(url);
-}
-      document.querySelector('input[name=url]').value = url;
-      document.querySelector('form').submit();
+    function go(url) {
+      window.location.href = '/go?url=' + encodeURIComponent(url);
     }
   </script>
 </body>
@@ -351,13 +304,6 @@ def go():
 
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
-        from urllib.parse import urlparse, parse_qs
-    parsed = urlparse(url)
-    if parsed.hostname and "google" in parsed.hostname:
-        params = parse_qs(parsed.query)
-        if "q" in params:
-            search_query = params["q"][0]
-            url = f"https://www.google.com/search?q={quote(search_query)}"
 
     try:
         resp = requests.get(url, headers=HEADERS, timeout=20, allow_redirects=True)
@@ -404,8 +350,4 @@ def resource():
 
 
 if __name__ == "__main__":
-    print("=" * 50)
-    print("🐾 らんくんプロキシ 起動！")
-    print("👉 http://localhost:5000 を開いてね")
-    print("=" * 50)
     app.run(debug=False, host="0.0.0.0", port=5000)
