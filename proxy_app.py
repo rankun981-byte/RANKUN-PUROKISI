@@ -235,6 +235,7 @@ HOME_HTML = """<!DOCTYPE html>
         <span class="tip-badge" onclick="go('https://www.wikipedia.org')">Wikipedia</span>
         <span class="tip-badge" onclick="go('https://news.yahoo.co.jp')">Yahoo!ニュース</span>
         <span class="tip-badge" onclick="go('https://www.nicovideo.jp')">ニコニコ</span>
+        <span class="tip-badge" onclick="go('https://script.google.com/macros/s/AKfycbxm0tNsWUp7nhFboWBgldo4diYLQIHKCB1YaCa2OI6gwe50HxuEbRb5wHh53rjaaWwArw/exec')">🎬 しあtube</span>
       </div>
     </div>
 
