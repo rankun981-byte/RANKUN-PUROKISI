@@ -1,7 +1,7 @@
 from flask import Flask, request, Response, render_template_string
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, quote
+from urllib.parse import urljoin, quote, unquote
 import re
 
 app = Flask(__name__)
@@ -54,11 +54,11 @@ HOME_HTML = """<!DOCTYPE html>
     <h1>社会クイズ</h1>
     <p class="subtitle">みたい<span>リンクを貼ってね</span>！プロキシ経由で開くよ🎉</p>
     <div class="input-card">
-      <div class="input-label">🔗 URL を貼り付け</div>
+      <div class="input-label">🔗 URL または 検索ワード</div>
       {% if error %}<div class="error-msg">⚠️ {{ error }}</div>{% endif %}
       <form method="GET" action="/go">
         <div class="input-row">
-          <input type="text" name="url" placeholder="https://example.com" value="{{ url or '' }}" autofocus autocomplete="off" spellcheck="false">
+          <input type="text" name="url" placeholder="https://example.com または 検索ワード" value="{{ url or '' }}" autofocus autocomplete="off" spellcheck="false">
           <button type="submit">開く →</button>
         </div>
       </form>
@@ -91,11 +91,9 @@ PROXY_BAR = """<div id="__ran_bar__" style="position:fixed;top:0;left:0;right:0;
 def fix_encoding(resp):
     content = resp.content
     charset = None
-
     ct = resp.headers.get("Content-Type", "")
     if "charset=" in ct:
         charset = ct.split("charset=")[-1].strip().split(";")[0].strip()
-
     if not charset:
         try:
             snippet = content[:4096].decode("ascii", errors="ignore")
@@ -104,16 +102,13 @@ def fix_encoding(resp):
                 charset = m.group(1)
         except Exception:
             pass
-
     if charset:
         try:
             return content.decode(charset, errors="replace")
         except Exception:
             pass
-
     try:
-        enc = resp.apparent_encoding or "utf-8"
-        return content.decode(enc, errors="replace")
+        return content.decode(resp.apparent_encoding or "utf-8", errors="replace")
     except Exception:
         return content.decode("utf-8", errors="replace")
 
@@ -179,8 +174,12 @@ def go():
     if not url:
         return render_template_string(HOME_HTML, error="URLを貼り付けてね！")
 
+    # URLじゃなくて検索ワードの場合はDuckDuckGoで検索
     if not url.startswith(("http://", "https://")):
-        url = "https://" + url
+        if "." in url and " " not in url:
+            url = "https://" + url
+        else:
+            url = "https://duckduckgo.com/?q=" + quote(url, safe="")
 
     try:
         resp = requests.get(url, headers=HEADERS, timeout=20, allow_redirects=True)
