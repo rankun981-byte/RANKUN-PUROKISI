@@ -46,9 +46,9 @@ HOME_HTML = """<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <div class="bubble" style="width:300px;height:300px;background:var(--accent);left:-100px;top:10%;animation-duration:18s;animation-delay:-5s;"></div>
-  <div class="bubble" style="width:200px;height:200px;background:var(--accent2);right:-60px;top:40%;animation-duration:14s;animation-delay:-8s;"></div>
-  <div class="bubble" style="width:150px;height:150px;background:var(--accent3);left:20%;bottom:0;animation-duration:20s;animation-delay:-2s;"></div>
+  <div class="bubble" style="width:300px;height:300px;background:var(--accent);left:-100px;top:10%;animation-duration:18s;"></div>
+  <div class="bubble" style="width:200px;height:200px;background:var(--accent2);right:-60px;top:40%;animation-duration:14s;animation-delay:-4s;"></div>
+  <div class="bubble" style="width:150px;height:150px;background:var(--accent3);left:20%;bottom:0;animation-duration:20s;animation-delay:-8s;"></div>
   <div class="container">
     <div class="mascot">🐾</div>
     <h1>社会クイズ</h1>
@@ -56,24 +56,40 @@ HOME_HTML = """<!DOCTYPE html>
     <div class="input-card">
       <div class="input-label">🔗 URL または 検索ワード</div>
       {% if error %}<div class="error-msg">⚠️ {{ error }}</div>{% endif %}
-      <form method="GET" action="/search">
-        <div class="input-row">
-          <input type="text" name="q" placeholder="URLまたは検索ワードを入力" value="{{ q or '' }}" autofocus autocomplete="off" spellcheck="false">
-          <button type="submit">開く →</button>
-        </div>
-      </form>
+      <div class="input-row">
+        <input type="text" id="main-input" placeholder="URLまたは検索ワードを入力" autofocus autocomplete="off" spellcheck="false">
+        <button onclick="handleInput()">開く →</button>
+      </div>
       <div class="tips">
-        <span class="tip-badge" onclick="go('https://duckduckgo.com')">🦆 DuckDuckGo</span>
-        <span class="tip-badge" onclick="go('https://www.wikipedia.org')">Wikipedia</span>
-        <span class="tip-badge" onclick="go('https://news.yahoo.co.jp')">Yahoo!ニュース</span>
-        <span class="tip-badge" onclick="go('https://www.nicovideo.jp')">ニコニコ</span>
-        <span class="tip-badge" onclick="go('https://script.google.com/macros/s/AKfycbxm0tNsWUp7nhFboWBgldo4diYLQIHKCB1YaCa2OI6gwe50HxuEbRb5wHh53rjaaWwArw/exec')">🎬 しあtube</span>
+        <span class="tip-badge" onclick="openUrl('https://duckduckgo.com')">🦆 DuckDuckGo</span>
+        <span class="tip-badge" onclick="openUrl('https://www.wikipedia.org')">Wikipedia</span>
+        <span class="tip-badge" onclick="openUrl('https://news.yahoo.co.jp')">Yahoo!ニュース</span>
+        <span class="tip-badge" onclick="openUrl('https://www.nicovideo.jp')">ニコニコ</span>
+        <span class="tip-badge" onclick="openUrl('https://script.google.com/macros/s/AKfycbxm0tNsWUp7nhFboWBgldo4diYLQIHKCB1YaCa2OI6gwe50HxuEbRb5wHh53rjaaWwArw/exec')">🎬 しあtube</span>
       </div>
     </div>
     <p class="footer">社会クイズ · サーバー経由でウェブを閲覧できるよ</p>
   </div>
   <script>
-    function go(url) { window.location.href = '/go?url=' + encodeURIComponent(url); }
+    function handleInput() {
+      var q = document.getElementById('main-input').value.trim();
+      if (!q) return;
+      var url;
+      if (q.startsWith('http://') || q.startsWith('https://')) {
+        url = q;
+      } else if (q.indexOf('.') !== -1 && q.indexOf(' ') === -1) {
+        url = 'https://' + q;
+      } else {
+        url = 'https://duckduckgo.com/?q=' + encodeURIComponent(q);
+      }
+      window.location.href = '/go?url=' + encodeURIComponent(url);
+    }
+    function openUrl(url) {
+      window.location.href = '/go?url=' + encodeURIComponent(url);
+    }
+    document.getElementById('main-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleInput();
+    });
   </script>
 </body>
 </html>
@@ -168,35 +184,13 @@ def index():
     return render_template_string(HOME_HTML)
 
 
-@app.route("/search")
-def search():
-    q = request.args.get("q", "").strip()
-    if not q:
-        return render_template_string(HOME_HTML, error="URLまたは検索ワードを入力してね！")
-
-    # URLかどうか判定
-    if q.startswith(("http://", "https://")):
-        url = q
-    elif "." in q and " " not in q:
-        url = "https://" + q
-    else:
-        # 検索ワードはDuckDuckGoで検索
-        url = "https://duckduckgo.com/?q=" + quote(q, safe="")
-
-    return fetch_and_return(url)
-
-
 @app.route("/go")
 def go():
     url = request.args.get("url", "").strip()
     if not url:
-        return render_template_string(HOME_HTML, error="URLを貼り付けてね！")
+        return render_template_string(HOME_HTML, error="URLを入力してね！")
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
-    return fetch_and_return(url)
-
-
-def fetch_and_return(url):
     try:
         resp = requests.get(url, headers=HEADERS, timeout=20, allow_redirects=True)
         ct = resp.headers.get("Content-Type", "")
