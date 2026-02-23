@@ -243,7 +243,13 @@ HOME_HTML = """<!DOCTYPE html>
   </div>
 
   <script>
-    function go(url) {
+    from urllib.parse import urlparse, parse_qs
+    parsed = urlparse(url)
+    if parsed.hostname and "google" in parsed.hostname:
+        params = parse_qs(parsed.query)
+        if "q" in params:
+            search_query = params["q"][0]
+            url = f"https://www.google.com/search?q={quote(search_query)}"
   window.location.href = '/go?url=' + encodeURIComponent(url);
 }
   location.href = '/go?url=' + encodeURIComponent(url);
